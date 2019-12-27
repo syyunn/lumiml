@@ -19,7 +19,8 @@ def TestInstall():
     snr = 1e4
     ## dist params
     bww = 0.5
-    tww = 5
+    tww = 5 # characteristic relaxation of time (uniquely determined by the
+    # material's property)
     st_exp = StretchedExponentialDistribution(beta_kww=bww, gamma_eval=gamma_eval, n_sum_terms=200, tau_kww=tww)
 
     sim = Simulator(distribution=st_exp, time_scale=timeVec, background_mean=bcg_mean, snr=snr)
