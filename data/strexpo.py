@@ -88,7 +88,7 @@ if __name__ == "__main__":
         background_mean=background_mean,
         signal_noise_rate=signal_noise_rate)
 
-    simulator.simulate_data()
+    simulator.simulate_data()  # this determines the y
 
     delta_basis_features = DeltaBasisFeatures(
         g_min=data.gamma_eval[0],
@@ -104,27 +104,31 @@ if __name__ == "__main__":
     t = simulator.time_scale[_filter].copy()  # copy to acquire immutability
     # to prevent the value t changes when its ref val changes
 
-    # y = simulator.data_simulated.simulated[_filter].copy()
-    #
-    # X = delta_basis_features.fit_transform(t[:, np.newaxis])
-    #
-    # penet = PoissonElasticNet(
-    #     alpha=1e-8,
-    #     fix_intercept=True,
-    #     intercept_guess=background_mean,
-    #     max_iter=1
-    # )
-    #
-    # penet_cv = PoissonElasticNetCV(
-    #     estimator=penet,
-    #     param_grid={'alpha': np.logspace(-9, -5, 31)},
-    #     cv=3,
-    #     verbose=1,
-    #     n_jobs=2
-    # )
-    #
-    # penet_cv.fit(X, y)
-    #
-    # print(penet_cv.best_estimator_.coef_)
+    y = simulator.data_simulated.simulated[_filter].copy()
+
+    X = delta_basis_features.fit_transform(t[:, np.newaxis])
+    #.fit performs the fitting process as shapes are denoted @ its another
+    # method "transform()"
+
+    penet = PoissonElasticNet(
+        alpha=1e-8,
+        fix_intercept=True,
+        intercept_guess=background_mean,
+        max_iter=1
+    )
+
+    penet_cv = PoissonElasticNetCV(
+        estimator=penet,
+        param_grid={'alpha': np.logspace(-9, -5, 31)},
+        cv=3, # k-fold param. check the GridSearchCV docs
+        verbose=1,
+        n_jobs=2
+    )
+
+    penet_cv.fit(X, y)
+    # penet_cv.save_cross_validation("test")
+
+    beta_estimated = penet_cv.best_estimator_.coef_
+    print(beta_estimated, beta_estimated.shape)
 
     pass
