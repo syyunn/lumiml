@@ -104,6 +104,29 @@ if __name__ == "__main__":
     t = simulator.time_scale[_filter].copy()  # copy to acquire immutability
     # to prevent the value t changes when its ref val changes
 
+    t_wo_filter_copy = simulator.time_scale.copy()
+    t_wo_filter_non_copy = simulator.time_scale
+
+    print("t_w_filter_copy == t_wo_filter_non_copy", t_wo_filter_copy == t_wo_filter_non_copy)
+
+    print("simulator.time_scale[0]",
+          simulator.time_scale[0])
+
+    new_val = 0
+    simulator.time_scale[0] = new_val
+
+    print("simulator.time_scale[_filter][0] after new assignment",
+          simulator.time_scale[0])
+
+    print("t_w_filter_copy == t_wo_filter_non_copy",
+          t_wo_filter_copy == t_wo_filter_non_copy)
+
+    print("t_w_filter_copy[0]",
+          t_wo_filter_copy[0] == new_val)
+
+    print("t_wo_filter_non_copy[0]",
+          t_wo_filter_non_copy[0] == new_val)
+
     # y = simulator.data_simulated.simulated[_filter].copy()
     #
     # X = delta_basis_features.fit_transform(t[:, np.newaxis])
