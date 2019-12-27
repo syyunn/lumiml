@@ -64,26 +64,23 @@ if __name__ == "__main__":
 
     linear_time_space = np.linspace(start=-30, stop=1000, num=10000)
 
-    data.show_gamma_eval(reverse=False)
+    # data.show_gamma_eval(reverse=False)
 
     beta_of_series_expansions_rho_of_kww = 0.5  # beta = 1/2 case simplifies
     # the distribution
 
-    tww_characteristic_relaxation_of_time = 5 # uniquely determined by
-    # the material's property
+    tww_characteristic_relaxation_of_time_constant = 5  # uniquely
+    # determined by the material's property
 
     stretched_exponential_dist = StretchedExponentialDistribution(
         beta_kww=beta_of_series_expansions_rho_of_kww,
         gamma_eval=data.gamma_eval,
         n_sum_terms=200,  # resolution of series expansion. refer to
         # https://en.wikipedia.org/wiki/Stretched_exponential_function#cite_note-8
-        tau_kww=tww_characteristic_relaxation_of_time)
+        tau_kww=tww_characteristic_relaxation_of_time_constant)
 
     background_mean = 100
     signal_noise_rate = 1e4
-    # add a background noise, corrupting the
-    # signal with Poisson noise so that the peak number of counts is
-    # [signal_noise_rate] × higher than the mean counts of the noise
 
     simulator = Simulator(
         distribution=stretched_exponential_dist,
@@ -91,23 +88,22 @@ if __name__ == "__main__":
         background_mean=background_mean,
         signal_noise_rate=signal_noise_rate)
 
-    # time_series, decay_rates =
-    # simulator.compute_decay_rate_before_add_noise()
-    # utils.show2d(time_series, decay_rates)
-
     simulator.simulate_data()
 
     delta_basis_features = DeltaBasisFeatures(
         g_min=data.gamma_eval[0],
         g_max=data.gamma_eval[-1],
         omega=2*np.pi,  # resolution of time scale
-        with_bias=False)
+        with_bias=False,
+        fix_low_end=False)
 
-    delta_basis_features.fit()
-    #
-    # _filter = simulator.time_scale >= 0
-    #
-    # t = simulator.time_scale[_filter].copy()
+    delta_basis_features.fit() # caclulate gamma space
+
+    _filter = simulator.time_scale >= 0
+
+    t = simulator.time_scale[_filter].copy()  # copy to acquire immutability
+    # to prevent the value t changes when its ref val changes
+
     # y = simulator.data_simulated.simulated[_filter].copy()
     #
     # X = delta_basis_features.fit_transform(t[:, np.newaxis])
