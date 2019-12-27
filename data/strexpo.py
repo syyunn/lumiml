@@ -97,17 +97,21 @@ if __name__ == "__main__":
         with_bias=False,
         fix_low_end=False)
 
-    delta_basis_features.fit() # caclulate gamma space
+    delta_basis_features.fit()  # calculate gamma space
 
     _filter = simulator.time_scale >= 0
 
-    t = simulator.time_scale[_filter].copy()  # copy to acquire immutability
+    t = simulator.time_scale[_filter].copy()
+    # copy to acquire immutability
     # to prevent the value t changes when its ref val changes
 
-    # y = simulator.data_simulated.simulated[_filter].copy()
-    #
-    # X = delta_basis_features.fit_transform(t[:, np.newaxis])
-    #
+    y = simulator.data_simulated.simulated[_filter].copy()
+
+    # utils.show2d(t, y)
+    t_new_axis = t[:, np.newaxis] # another dim added -> e.g. [prev_shape , 1]
+
+    X = delta_basis_features.fit_transform(t[:, np.newaxis])
+
     # penet = PoissonElasticNet(
     #     alpha=1e-8,
     #     fix_intercept=True,
