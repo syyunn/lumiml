@@ -90,14 +90,16 @@ class StretchedExponentialDistribution(DecayDistribution):
             where higher beta resulting in dirac-delta.
             ===========================================
         """
-        power = self.beta_kww
+        beta = self.beta_kww
         relaxed_linear_time = time_scale/self.tau_kww
-        positive_linear_time = self._step(time_scale)
+        positive_time_filter = self._step(time_scale)
 
-        exponent_base = -1 * positive_linear_time * relaxed_linear_time
-        exponent_power = self.beta_kww
+        exponent = -1 * (positive_time_filter * relaxed_linear_time) ** beta
 
-        exponent = -(self._step(time_scale) * time_scale/self.tau_kww)**self.beta_kww
+        #  exponent = -(self._step(time_scale) *
+        #  time_scale/self.tau_kww)**self.beta_kww # this-is-the-original
+        #  version of the implementation
+
         y_transform = np.exp(exponent)
         return y_transform.copy()
 
@@ -164,10 +166,19 @@ class Simulator(object):
     def step(x):
         return np.asarray(x >= 0, dtype=np.int)
 
+    def compute_decay_rate_before_add_noise(self):
+        positive_times = self.step(self.time_scale)
+
+        y_clean = positive_times * self.distribution.transform(self.time_scale)
+
+        return self.time_scale, y_clean
+
     def simulate_data(self):
         max_counts = self.background_mean * (self.snr - 1)
 
         y_clean = self.step(self.time_scale) * self.distribution.transform(self.time_scale)
+
+
 
         y_analytic_max = max_counts * y_clean / max(y_clean)
 
