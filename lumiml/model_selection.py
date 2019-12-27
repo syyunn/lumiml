@@ -3,7 +3,7 @@ from lumiml.utils.fileutils import save_to_file
 from .models import PoissonElasticNet
 
 
-class PoissonElasticNetCV(GridSearchCV):
+class PoissonElasticNetCV(GridSearchCV): # CV stands for the cross-validation
     """
     Helper class for performing grid search cross-validation. This class inherits all properties from
     sklearn.model_selection.GridSearchCV. For information about all other parameters not explained below,
