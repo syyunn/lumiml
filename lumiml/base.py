@@ -49,9 +49,11 @@ class GenericBasisFeatures(BaseEstimator, TransformerMixin):
         Otherwise, the points will be calculated as `gamma_vec[i]=gamma_min * np.exp((ig + 0.5) * dg)`,
         where `dg = pi/omega`.
 
+        Γk = Γ0 * exp(kπ / ω)
+
         Parameters
         ----------
-        gamma_min: float
+        gamma_min: float :: Γ0
             The lowest decay rate to consider
         gamma_max: float
             The highest decay rate to consider
