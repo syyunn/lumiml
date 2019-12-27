@@ -177,9 +177,16 @@ class Simulator(object):
         return self.time_scale, y_clean
 
     def simulate_data(self):
+        """ Add a background noise, corrupting the signal with Poisson noise
+        so that the peak number of counts is [self.signal_noise_rate] × higher
+        than the mean counts of the noise
+        """
+
         max_counts = self.background_mean * (self.signal_noise_rate - 1)
 
         y_clean = self.step(self.time_scale) * self.distribution.transform(self.time_scale)
+
+        # maxval = max(y_clean)
 
         y_analytic_max = max_counts * y_clean / max(y_clean)
 
