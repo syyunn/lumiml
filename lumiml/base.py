@@ -21,7 +21,8 @@ class GenericBasisFeatures(BaseEstimator, TransformerMixin):
         self.g_min = g_min
         self.omega = omega
         self.gamma_axis = None
-        self.n_output_features = None
+        self.n_output_features = None  # this val will be filled when its
+        # method "fit()" called
         self.scale = 1
         super(GenericBasisFeatures, self).__init__()
 
@@ -158,13 +159,28 @@ class DeltaBasisFeatures(GenericBasisFeatures):
         :return: `Xd`, matrix of features using delta-basis.
         """
         X = check_array(X, dtype=FLOAT_DTYPES)
+
+        ###################### decrease time val to start from 0 by subtract
+        # starting val
+        x_0 = X[0]
+        x_x_0 = X-X[0]
+        exponent = -(X - X[0]) * self.gamma_axis
+        ######################
+
         n_samples, n_features = X.shape
 
         # allocate output data
         Xd = np.empty((n_samples, self.n_output_features), dtype=X.dtype)
-        Xd[:, 0] = 1
+        Xd[:, 0] = 1  # this only works for the case of bias exist
         start = int(self.with_bias)
         np.exp(-(X-X[0]) * self.gamma_axis, Xd[:, start:])
+        # this performs
+        # ::ref:: X are obtained by evaluating the integral ∫ Γmaxφ (Γ) Γmin i
+        # exp(−Γ·t )dΓ
+
+        # basis expansion φi(Γ) = (0, 0, 0, 0, 1,...0) where 1 is j-th
+        # element. thus outer-product "np.exp(-(X-X[0]) * self.gamma_axis"
+        # works for the case to determine X.
 
         if self.whiten:
             np.multiply(self.scale[:, np.newaxis], Xd[:, start:], out=Xd[:, start:])
