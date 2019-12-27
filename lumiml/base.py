@@ -71,7 +71,8 @@ class GenericBasisFeatures(BaseEstimator, TransformerMixin):
             gamma_vec = GenericBasisFeatures.get_gamma_space(gamma_min, gamma_max, omega)
             return gamma_vec.copy()
 
-        dg = np.pi / omega
+        dg = np.pi / omega   # Γk = Γ0 * exp(kπ / ω)
+
         gamma_range = np.log(gamma_max / gamma_min)
 
         M = np.int(np.floor((gamma_range * omega / np.pi) + 1))
@@ -123,8 +124,12 @@ class GenericBasisFeatures(BaseEstimator, TransformerMixin):
         :param y:
         :return: None. The object is modified in-place.
         """
-        self.gamma_axis = DeltaBasisFeatures.calculate_gamma_space(gamma_min=self.g_min, gamma_max=self.g_max,
-                                                                   omega=self.omega, fix_low_end=self.fix_low_end)
+        self.gamma_axis = DeltaBasisFeatures.calculate_gamma_space(
+            gamma_min=self.g_min,
+            gamma_max=self.g_max,
+            omega=self.omega,
+            fix_low_end=self.fix_low_end)
+
         self.n_output_features = len(self.gamma_axis) + int(self.with_bias)
 
         if self.whiten:
