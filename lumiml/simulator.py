@@ -82,6 +82,21 @@ class StretchedExponentialDistribution(DecayDistribution):
         return rho_.copy()
 
     def transform(self, time_scale):
+        """Compute decay rate on linear time scale w/ following functions:
+            ===========================================
+            decay_rate = e^(-t)^(\beta)
+            where t is relaxed time and \beta is
+            stretching exponent,
+            where higher beta resulting in dirac-delta.
+            ===========================================
+        """
+        power = self.beta_kww
+        relaxed_linear_time = time_scale/self.tau_kww
+        positive_linear_time = self._step(time_scale)
+
+        exponent_base = -1 * positive_linear_time * relaxed_linear_time
+        exponent_power = self.beta_kww
+
         exponent = -(self._step(time_scale) * time_scale/self.tau_kww)**self.beta_kww
         y_transform = np.exp(exponent)
         return y_transform.copy()
@@ -151,6 +166,7 @@ class Simulator(object):
 
     def simulate_data(self):
         max_counts = self.background_mean * (self.snr - 1)
+
         y_clean = self.step(self.time_scale) * self.distribution.transform(self.time_scale)
 
         y_analytic_max = max_counts * y_clean / max(y_clean)
