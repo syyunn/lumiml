@@ -149,9 +149,12 @@ class SimulatedData(object):
 
 
 class Simulator(object):
-    def __init__(self, distribution: DecayDistribution, time_scale, background_mean, snr, with_background=True):
+    def __init__(self, distribution: DecayDistribution,
+                 time_scale,
+                 background_mean,
+                 signal_noise_rate, with_background=True):
         self.with_background = with_background
-        self.snr = snr
+        self.signal_noise_rate = signal_noise_rate
         self.background_mean = background_mean
         assert isinstance(time_scale, np.ndarray)
         self.time_scale = time_scale
@@ -174,11 +177,9 @@ class Simulator(object):
         return self.time_scale, y_clean
 
     def simulate_data(self):
-        max_counts = self.background_mean * (self.snr - 1)
+        max_counts = self.background_mean * (self.signal_noise_rate - 1)
 
         y_clean = self.step(self.time_scale) * self.distribution.transform(self.time_scale)
-
-
 
         y_analytic_max = max_counts * y_clean / max(y_clean)
 
