@@ -52,8 +52,18 @@ class PoissonElasticNet(LinearModel, RegressorMixin):
         to reconstruct underlying decay rate distribution.
 
     """
-    def __init__(self, alpha=1.0, l1_ratio=0.5, max_iter=10000, tol=1e-9, positive=True, intercept_guess=0.,
-                 fix_intercept=False, method=nlopt.LN_NELDERMEAD, warm_start=False, init_vector=None):
+    def __init__(self,
+                 alpha=1.0,
+                 l1_ratio=0.5,
+                 max_iter=10000,
+                 tol=1e-9,
+                 positive=True,
+                 intercept_guess=0.,  # will be set to background mean
+                 fix_intercept=False,
+                 method=nlopt.LN_NELDERMEAD,  # Nelder-Mead Simplex # refer
+                 # to https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/
+                 warm_start=False,
+                 init_vector=None):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
         self.max_iter = max_iter
@@ -66,7 +76,8 @@ class PoissonElasticNet(LinearModel, RegressorMixin):
         self.init_vector = init_vector
 
         self.optimizer = None   # placeholder for defining optimizer later
-        self.loc_optimizer_ = None   # placeholder for local optimizer (case of method=nlopt.AUGLAG)
+        self.loc_optimizer_ = None
+        # placeholder for local optimizer (case of method=nlopt.AUGLAG)
 
         super(PoissonElasticNet, self).__init__()
 
@@ -94,6 +105,7 @@ class PoissonElasticNet(LinearModel, RegressorMixin):
 
         """
         y_hat = theta[0] + np.dot(X, theta[1:])
+        # print("theta.shape", theta.shape)
         n_samples = X.shape[0]
         l1_pen = reg_lambda * alpha * np.linalg.norm(theta[1:], 1)
         l2_pen = 0.5 * reg_lambda * (1 - alpha) * np.linalg.norm(theta[1:], 2) ** 2
@@ -195,10 +207,10 @@ class PoissonElasticNet(LinearModel, RegressorMixin):
         self.optimizer = nlopt.opt(self.method, n_features + 1)  # always fit intercept
         self.optimizer.set_ftol_rel(self.tol)
         self.optimizer.set_maxeval(self.max_iter)
-        if self.fix_intercept:
-            if self.positive:
-                lb_vector = np.zeros((n_features + 1))
-                lb_vector[0] = self.intercept_guess
+        if self.fix_intercept:  # default True
+            if self.positive:  # default True
+                lb_vector = np.zeros((n_features + 1))  # lower bound
+                lb_vector[0] = self.intercept_guess  # upper bound
                 ub_vector = np.inf * np.ones_like(lb_vector)
                 ub_vector[0] = self.intercept_guess
                 self.optimizer.set_lower_bounds(lb_vector)
