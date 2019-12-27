@@ -23,7 +23,7 @@ def TestInstall():
     # material's property)
     st_exp = StretchedExponentialDistribution(beta_kww=bww, gamma_eval=gamma_eval, n_sum_terms=200, tau_kww=tww)
 
-    sim = Simulator(distribution=st_exp, time_scale=timeVec, background_mean=bcg_mean, snr=snr)
+    sim = Simulator(distribution=st_exp, time_scale=timeVec, background_mean=bcg_mean, signal_noise_rate=snr)
     
     # simulate the streched exponential distribution
     sim.simulate_data()

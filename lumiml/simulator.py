@@ -82,7 +82,24 @@ class StretchedExponentialDistribution(DecayDistribution):
         return rho_.copy()
 
     def transform(self, time_scale):
-        exponent = -(self._step(time_scale) * time_scale/self.tau_kww)**self.beta_kww
+        """Compute decay rate on linear time scale w/ following functions:
+            ===========================================
+            decay_rate = e^(-t)^(\beta)
+            where t is relaxed time and \beta is
+            stretching exponent,
+            where higher beta resulting in dirac-delta.
+            ===========================================
+        """
+        beta = self.beta_kww
+        relaxed_linear_time = time_scale/self.tau_kww
+        positive_time_filter = self._step(time_scale)
+
+        exponent = -1 * (positive_time_filter * relaxed_linear_time) ** beta
+
+        #  exponent = -(self._step(time_scale) *
+        #  time_scale/self.tau_kww)**self.beta_kww # this-is-the-original
+        #  version of the implementation
+
         y_transform = np.exp(exponent)
         return y_transform.copy()
 
@@ -132,9 +149,12 @@ class SimulatedData(object):
 
 
 class Simulator(object):
-    def __init__(self, distribution: DecayDistribution, time_scale, background_mean, snr, with_background=True):
+    def __init__(self, distribution: DecayDistribution,
+                 time_scale,
+                 background_mean,
+                 signal_noise_rate, with_background=True):
         self.with_background = with_background
-        self.snr = snr
+        self.signal_noise_rate = signal_noise_rate
         self.background_mean = background_mean
         assert isinstance(time_scale, np.ndarray)
         self.time_scale = time_scale
@@ -149,9 +169,24 @@ class Simulator(object):
     def step(x):
         return np.asarray(x >= 0, dtype=np.int)
 
+    def compute_decay_rate_before_add_noise(self):
+        positive_times = self.step(self.time_scale)
+
+        y_clean = positive_times * self.distribution.transform(self.time_scale)
+
+        return self.time_scale, y_clean
+
     def simulate_data(self):
-        max_counts = self.background_mean * (self.snr - 1)
+        """ Add a background noise, corrupting the signal with Poisson noise
+        so that the peak number of counts is [self.signal_noise_rate] × higher
+        than the mean counts of the noise
+        """
+
+        max_counts = self.background_mean * (self.signal_noise_rate - 1)
+
         y_clean = self.step(self.time_scale) * self.distribution.transform(self.time_scale)
+
+        # maxval = max(y_clean)
 
         y_analytic_max = max_counts * y_clean / max(y_clean)
 
