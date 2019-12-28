@@ -25,8 +25,8 @@ Variables:
 import numpy as np
 
 import data.utils as utils
-from lumiml.simulator import Simulator, StretchedExponentialDistribution
 
+from lumiml.simulator import Simulator, StretchedExponentialDistribution
 from lumiml.base import DeltaBasisFeatures
 from lumiml.models import PoissonElasticNet
 from lumiml.model_selection import PoissonElasticNetCV
@@ -93,11 +93,11 @@ if __name__ == "__main__":
     delta_basis_features = DeltaBasisFeatures(
         g_min=data.gamma_eval[0],
         g_max=data.gamma_eval[-1],
-        omega=2*np.pi,  # resolution of time scale
+        omega=2 * np.pi,  # resolution of time scale
         with_bias=False,
         fix_low_end=False)
 
-    delta_basis_features.fit() # caclulate gamma space
+    delta_basis_features.fit()  # caclulate gamma space
 
     _filter = simulator.time_scale >= 0
 
@@ -107,20 +107,32 @@ if __name__ == "__main__":
     y = simulator.data_simulated.simulated[_filter].copy()
 
     X = delta_basis_features.fit_transform(t[:, np.newaxis])
-    #.fit performs the fitting process as shapes are denoted @ its another
+
+    # .fit performs the fitting process as shapes are denoted @ its another
     # method "transform()"
 
     penet = PoissonElasticNet(
         alpha=1e-8,
         fix_intercept=True,
-        intercept_guess=background_mean,
+        intercept_guess=background_mean,  # this will be the initial guess
+        # point that is common to every time dimension (observed data dim).
+        # Then we think of this as an "additional dimension", therefore,
+        # we will have total n+1 coefficient to fit when we run the
+        # Nelder-Mead search. The notational understanding is as following:
+
+        ############################################################
+        # Search optimal \beta of y = X*\beta is equivalent to find
+        # y' = c + (X*\beta - c) where c \in \theta (the parameter group) to
+        # fit in MLE setting.
+        ############################################################
+
         max_iter=1
     )
 
     penet_cv = PoissonElasticNetCV(
         estimator=penet,
         param_grid={'alpha': np.logspace(-9, -5, 31)},
-        cv=3, # k-fold param. check the GridSearchCV docs
+        cv=3,  # k-fold param. check the GridSearchCV docs
         verbose=1,
         n_jobs=2
     )
